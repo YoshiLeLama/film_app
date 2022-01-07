@@ -1,7 +1,7 @@
 <template>
   <div class="col">
     <FilmDetailsPopup :id="id"
-                      :data="movieData"></FilmDetailsPopup>
+                      :movie-data="movieData"></FilmDetailsPopup>
     <div class="card shadow">
       <img alt="Banner" :src="movieData.movie_banner" class="card-img-top"/>
       <div class="card-body">

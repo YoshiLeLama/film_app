@@ -1,11 +1,23 @@
 <template>
   <div class="w-75 mx-auto m-3">
+    <FilmAddPopup id="add-film-popup" @onPost="getFilms"></FilmAddPopup>
+    <div class="d-flex justify-content-end flex-wrap">
+      <button type="button" class="btn btn-primary me-3" id="refreshButton"
+              @click="showAddMovieModal"
+              @mouseenter="growPlusButton = true" @mouseleave="growPlusButton = false"><i class="bi bi-plus-circle"></i>
+        Add movie
+      </button>
+      <button type="button" class="btn btn-outline-primary me-3 mt-1" @click="getFilms"
+              @mouseenter="rotateRefresh = true" @mouseleave="rotateRefresh = false">
+        <div :class="{rotate: rotateRefresh}"><i class="bi bi-arrow-clockwise"></i></div>
+      </button>
+    </div>
     <ListFilter :director_choices="directorChoices"
                 :sorting_choices="sortingChoices"
                 @titleFilterChange="titleFilter = $event"
                 @directorFilterChange="directorFilter = $event"
                 @sortingChange="updateSort($event)"></ListFilter>
-    <div class="row justify-content-center row-cols-1 row-cols-md-5 g-2">
+    <div class="row justify-content-center row-cols-1 row-cols-sm-2 row-cols-xxl-6 row-cols-md-3 row-cols-xl-5 g-2">
       <FilmPreview
           v-for="film in films.filter(
               ({title, director}) => title.toLowerCase().search(titleFilter.toLowerCase()) !== -1
@@ -19,8 +31,12 @@
 
 <script>
 import axios from "axios";
-import FilmPreview from "@/components/FilmPreview";
+import {Modal} from "bootstrap";
+import FilmAddPopup from "@/components/FilmAddPopup";
 import ListFilter from "@/components/ListFilter";
+import FilmPreview from "@/components/FilmPreview";
+
+
 
 const SortModes = {
   DIR_ASC: "Director A-Z",
@@ -34,6 +50,7 @@ const SortModes = {
 export default {
   name: "FilmList",
   components: {
+    FilmAddPopup,
     ListFilter,
     FilmPreview
   },
@@ -51,6 +68,24 @@ export default {
         this.films.sort(({release_date: A}, {release_date: B}) => A > B);
       else if (mode === SortModes.DATE_DESC)
         this.films.sort(({release_date: A}, {release_date: B}) => A < B);
+    },
+    updateModal() {
+      this.movieAddModal = new Modal(document.getElementById("add-film-popup"));
+    },
+    showAddMovieModal() {
+      console.log(this.movieAddModal.show())
+    },
+    getFilms() {
+      this.films = []
+      axios.get((process.env.VUE_APP_API_URL ?? "") + "/api/films", {}).then(
+          movies => {
+            for (let data of movies.data) {
+              if (!this.directorChoices.some(val => val === data.director))
+                this.directorChoices.push(data.director);
+              this.films.push(data);
+            }
+          }
+      )
     }
   },
   data() {
@@ -60,24 +95,51 @@ export default {
       titleFilter: "",
       directorFilter: "",
       directorChoices: [],
-      sortingChoices: Object.values(SortModes)
+      sortingChoices: Object.values(SortModes),
+      movieAddModal: Modal,
+      rotateRefresh: false,
+      growPlusButton: false
     }
   },
   beforeMount() {
-    axios.get("https://ghibliapi.herokuapp.com/films").then(
-        movies => {
-          for (let data of movies.data) {
-            if (!this.directorChoices.some(val => val === data.director))
-              this.directorChoices.push(data.director);
-            this.films.push(data);
-          }
-        }
-    )
+    this.getFilms();
+  },
+  mounted() {
+    this.updateModal();
+  },
+  updated() {
+    this.updateModal();
   }
 
 }
 </script>
 
 <style scoped>
+.rotate {
+  animation: rotation 1s ease-out 1;
+}
 
+.growing {
+  animation-name: grow;
+  animation-duration: 1s;
+  animation-iteration-count: 1;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes grow {
+  0%, 100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.2, 1.2);
+  }
+}
 </style>
