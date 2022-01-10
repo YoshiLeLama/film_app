@@ -1,15 +1,15 @@
 <template>
-  <div class="col">
+  <div class="col no-select">
     <FilmDetailsPopup :id="id"
                       :movie-data="movieData"></FilmDetailsPopup>
     <div class="card shadow">
-      <img alt="Banner" :src="movieData.movie_banner" class="card-img-top"/>
+      <img alt="Banner" :src="movieData.poster" class="card-img-top" draggable="false"/>
       <div class="card-body">
         <h5 class="card-title">{{ movieData.title }}</h5>
         <p class="fs-6">{{ movieData.director }} · {{ movieData.release_date }}</p>
-        <a @click="modal.show()"
+        <button @click="modal.show()"
            class="btn btn-primary position-relative">View more details
-        </a>
+        </button>
       </div>
       <div class="card-footer text-muted">
         <p class="fs-6 m-0">Rating :
@@ -31,14 +31,15 @@ export default {
   data() {
     return {
       showDetails: false,
-      modal: null
+      modal: null,
+      activateFlip: true
     }
   },
   props: {
     id: String,
     movieData: Object
   },
-  mounted() {
+  async mounted() {
     this.updateModal();
   },
   updated() {
@@ -53,4 +54,21 @@ export default {
 </script>
 
 <style scoped>
+.flip:hover {
+  animation-name: flipY;
+  animation-duration: 500ms;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  z-index: 1;
+}
+
+@keyframes flipY {
+  from {
+    transform: scale(1.0, 1.0);
+  }
+  to {
+    transform: scale(1.05, 1.05);
+  }
+}
 </style>

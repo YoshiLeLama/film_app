@@ -25,4 +25,12 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
 }
+
+.no-select {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
 </style>
