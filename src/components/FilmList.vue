@@ -1,7 +1,7 @@
 <template>
   <div class="w-75 mx-auto m-3">
     <FilmAddPopup id="add-film-popup" @onPost="getFilms"></FilmAddPopup>
-    <div class="d-flex justify-content-end flex-wrap">
+    <div class="d-flex justify-content-end flex-wrap align-items-baseline">
       <button type="button" class="btn btn-primary me-3" id="refreshButton"
               @click="showAddMovieModal"
               @mouseenter="growPlusButton = true" @mouseleave="growPlusButton = false"><i class="bi bi-plus-circle"></i>
@@ -35,7 +35,6 @@ import {Modal} from "bootstrap";
 import FilmAddPopup from "@/components/FilmAddPopup";
 import ListFilter from "@/components/ListFilter";
 import FilmPreview from "@/components/FilmPreview";
-
 
 
 const SortModes = {
@@ -77,15 +76,22 @@ export default {
     },
     getFilms() {
       this.films = []
-      axios.get((process.env.VUE_APP_API_URL ?? "") + "/api/films", {}).then(
-          movies => {
-            for (let data of movies.data) {
-              if (!this.directorChoices.some(val => val === data.director))
-                this.directorChoices.push(data.director);
-              this.films.push(data);
+      this.directorChoices = []
+      let directors = {}
+      axios.get((process.env.VUE_APP_API_URL ?? "") + "/api/films/", {}).then(
+          async ({data}) => {
+            for (let film of data) {
+              if (!directors[film.director]) {
+                directors[film.director] = (await axios.get(process.env.VUE_APP_API_URL + "/api/directors/" + film.director)).data.name
+              }
+              film.director = directors[film.director]
+              this.films.push(film);
+            }
+            for (let director of Object.values(directors)) {
+              this.directorChoices.push(director)
             }
           }
-      )
+      ).catch(err => console.error('eee', err))
     }
   },
   data() {
